@@ -289,36 +289,7 @@
         (void) gettimeofday(&tv, NULL); \
         return (tv.tv_sec * 1000000LL + tv.tv_usec)
 
-    #if defined(__ia64__)
-        #define MD_STACK_GROWS_DOWN
-
-        /*
-         * IA-64 architecture.  Besides traditional memory call stack, IA-64
-         * uses general register stack.  Thus each thread needs a backing store
-         * for register stack in addition to memory stack.  Standard
-         * setjmp()/longjmp() cannot be used for thread context switching
-         * because their implementation implicitly assumes that only one
-         * register stack exists.
-         */
-        #ifdef USE_LIBC_SETJMP
-            #undef USE_LIBC_SETJMP
-        #endif
-        #define MD_USE_BUILTIN_SETJMP
-
-        #define MD_STACK_PAD_SIZE 128
-        /* Last register stack frame must be preserved */
-        #define MD_INIT_CONTEXT(_thread, _sp, _bsp, _main)                       \
-            ST_BEGIN_MACRO                                                         \
-            if (MD_SETJMP((_thread)->context))                                     \
-                _main();                                                             \
-            memcpy((char *)(_bsp) - MD_STACK_PAD_SIZE,                             \
-             (char *)(_thread)->context[0].__jmpbuf[17] - MD_STACK_PAD_SIZE, \
-             MD_STACK_PAD_SIZE);                                             \
-            (_thread)->context[0].__jmpbuf[0]  = (long) (_sp);                     \
-            (_thread)->context[0].__jmpbuf[17] = (long) (_bsp);                    \
-            ST_END_MACRO
-
-    #elif defined(__mips__)
+    #if defined(__mips__)
         #define MD_STACK_GROWS_DOWN
 
         #define MD_INIT_CONTEXT(_thread, _sp, _main)               \
@@ -328,7 +299,7 @@
             _thread->context[0].__jmpbuf[0].__sp = _sp;              \
             ST_END_MACRO
 
-    #else /* Not IA-64 or mips */
+    #else /* Not mips */
 
         /*
          * On linux, there are a few styles of jmpbuf format.  These vary based
