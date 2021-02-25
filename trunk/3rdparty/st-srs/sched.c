@@ -503,10 +503,15 @@ void _st_del_sleep_q(_st_thread_t *thread)
 void _st_vp_check_clock(void)
 {
     _st_thread_t *thread;
-    st_utime_t elapsed, now;
-    
+    st_utime_t now;
+#if defined(DEBUG) && defined(DEBUG_STATS)
+    st_utime_t elapsed;
+#endif
+
     now = st_utime();
+#if defined(DEBUG) && defined(DEBUG_STATS)
     elapsed = now < _ST_LAST_CLOCK? 0 : now - _ST_LAST_CLOCK; // Might step back.
+#endif
     _ST_LAST_CLOCK = now;
 
     #if defined(DEBUG) && defined(DEBUG_STATS)
