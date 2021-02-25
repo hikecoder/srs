@@ -60,7 +60,6 @@
 
 #if defined (DARWIN)
 
-    #define MD_STACK_GROWS_DOWN
     #define MD_USE_BSD_ANON_MMAP
     #define MD_ACCEPT_NB_INHERITED
     #define MD_ALWAYS_UNSERIALIZED_ACCEPT
@@ -119,8 +118,6 @@
         return (tv.tv_sec * 1000000LL + tv.tv_usec)
 
     #if defined(__mips__)
-        #define MD_STACK_GROWS_DOWN
-
         #define MD_INIT_CONTEXT(_thread, _sp, _main)               \
             ST_BEGIN_MACRO                                           \
             MD_SETJMP((_thread)->context);                           \
@@ -151,7 +148,6 @@
          */
 
         #if defined(__i386__)
-            #define MD_STACK_GROWS_DOWN
             #define MD_USE_BUILTIN_SETJMP
 
             #if defined(__GLIBC__) && __GLIBC__ >= 2
@@ -166,7 +162,6 @@
             #endif
 
         #elif defined(__amd64__) || defined(__x86_64__)
-            #define MD_STACK_GROWS_DOWN
             #define MD_USE_BUILTIN_SETJMP
 
             #ifndef JB_RSP
@@ -176,12 +171,10 @@
 
         #elif defined(__aarch64__)
             /* https://github.com/ossrs/state-threads/issues/9 */
-            #define MD_STACK_GROWS_DOWN
             #define MD_USE_BUILTIN_SETJMP
             #define MD_GET_SP(_t) (_t)->context[0].__jmpbuf[13]
 
         #elif defined(__arm__)
-            #define MD_STACK_GROWS_DOWN
             /* https://github.com/ossrs/state-threads/issues/1#issuecomment-244648573 */
             #define MD_USE_BUILTIN_SETJMP
 
