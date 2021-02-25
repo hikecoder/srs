@@ -79,7 +79,6 @@ static struct _st_kqdata {
     int dellist_size;
     int dellist_cnt;
     int kq;
-    pid_t pid;
 } *_st_kq_data;
 
 #ifndef ST_KQ_MIN_EVTLIST_SIZE
@@ -108,7 +107,6 @@ static struct _st_epolldata {
     int evtlist_cnt;
     int fd_hint;
     int epfd;
-    pid_t pid;
 } *_st_epoll_data;
 
 #ifndef ST_EPOLL_EVTLIST_SIZE
@@ -152,7 +150,6 @@ ST_HIDDEN int _st_kq_init(void)
         goto cleanup_kq;
     }
     fcntl(_st_kq_data->kq, F_SETFD, FD_CLOEXEC);
-    _st_kq_data->pid = getpid();
 
     /*
      * Allocate file descriptor data array.
@@ -388,7 +385,6 @@ ST_HIDDEN void _st_kq_dispatch(void)
         tsp = &timeout;
     }
 
- retry_kevent:
     /* Check for I/O operations */
     nfd = kevent(_st_kq_data->kq,
                  _st_kq_data->addlist, _st_kq_data->addlist_cnt,
@@ -482,24 +478,6 @@ ST_HIDDEN void _st_kq_dispatch(void)
             osfd = _st_kq_data->evtlist[i].ident;
             _ST_KQ_REVENTS(osfd) = 0;
         }
-
-    } else if (nfd < 0) {
-        if (errno == EBADF && _st_kq_data->pid != getpid()) {
-            /* We probably forked, reinitialize kqueue */
-            if ((_st_kq_data->kq = kqueue()) < 0) {
-                /* There is nothing we can do here, will retry later */
-                return;
-            }
-            fcntl(_st_kq_data->kq, F_SETFD, FD_CLOEXEC);
-            _st_kq_data->pid = getpid();
-            /* Re-register all descriptors on ioq with new kqueue */
-            memset(_st_kq_data->fd_data, 0, _st_kq_data->fd_data_size * sizeof(_kq_fd_data_t));
-            for (q = _ST_IOQ.next; q != &_ST_IOQ; q = q->next) {
-                pq = _ST_POLLQUEUE_PTR(q);
-                _st_kq_pollset_add(pq->pds, pq->npds);
-            }
-            goto retry_kevent;
-        }
     }
 }
 
@@ -565,7 +543,6 @@ ST_HIDDEN int _st_epoll_init(void)
         goto cleanup_epoll;
     }
     fcntl(_st_epoll_data->epfd, F_SETFD, FD_CLOEXEC);
-    _st_epoll_data->pid = getpid();
 
     /* Allocate file descriptor data array */
     _st_epoll_data->fd_data_size = _st_epoll_data->fd_hint;
@@ -762,26 +739,6 @@ ST_HIDDEN void _st_epoll_dispatch(void)
 
                 timeout = 1;
             }
-        }
-    }
-
-    if (_st_epoll_data->pid != getpid()) {
-        /* We probably forked, reinitialize epoll set */
-        close(_st_epoll_data->epfd);
-        _st_epoll_data->epfd = epoll_create(_st_epoll_data->fd_hint);
-        if (_st_epoll_data->epfd < 0) {
-            /* There is nothing we can do here, will retry later */
-            return;
-        }
-        fcntl(_st_epoll_data->epfd, F_SETFD, FD_CLOEXEC);
-        _st_epoll_data->pid = getpid();
-
-        /* Put all descriptors on ioq into new epoll set */
-        memset(_st_epoll_data->fd_data, 0, _st_epoll_data->fd_data_size * sizeof(_epoll_fd_data_t));
-        _st_epoll_data->evtlist_cnt = 0;
-        for (q = _ST_IOQ.next; q != &_ST_IOQ; q = q->next) {
-            pq = _ST_POLLQUEUE_PTR(q);
-            _st_epoll_pollset_add(pq->pds, pq->npds);
         }
     }
 
