@@ -61,7 +61,7 @@ TARGETDIR   = $(OS)_$(shell uname -r)_$(BUILD)
 DEFINES     = -D$(OS)
 CFLAGS      =
 SFLAGS      =
-ARFLAGS     = -rv
+ARFLAGS     = -r
 LNFLAGS     = -s
 DSO_SUFFIX  = so
 
