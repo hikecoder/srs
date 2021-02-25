@@ -62,7 +62,6 @@
 
     #define MD_USE_BSD_ANON_MMAP
     #define MD_ACCEPT_NB_INHERITED
-    #define MD_ALWAYS_UNSERIALIZED_ACCEPT
     #define MD_HAVE_SOCKLEN_T
 
     #define MD_USE_BUILTIN_SETJMP
@@ -102,7 +101,6 @@
      */
     #define MD_USE_BSD_ANON_MMAP
     #define MD_ACCEPT_NB_NOT_INHERITED
-    #define MD_ALWAYS_UNSERIALIZED_ACCEPT
     /*
      * Modern GNU/Linux is Posix.1g compliant.
      */
