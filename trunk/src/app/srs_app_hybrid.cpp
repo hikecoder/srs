@@ -161,11 +161,6 @@ srs_error_t SrsHybridServer::initialize()
 {
     srs_error_t err = srs_success;
 
-    // init st
-    if ((err = srs_st_init()) != srs_success) {
-        return srs_error_wrap(err, "initialize st failed");
-    }
-
     if ((err = setup_ticks()) != srs_success) {
         return srs_error_wrap(err, "tick");
     }
