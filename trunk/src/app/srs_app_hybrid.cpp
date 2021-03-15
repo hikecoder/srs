@@ -276,7 +276,12 @@ srs_error_t SrsHybridServer::notify(int event, srs_utime_t interval, srs_utime_t
             ++_srs_pps_timer_s->sugar;
         }
 
-        // Consume the cooked async SRTP packets.
+        // Consume the async received UDP packets.
+        if ((err = _srs_async_recv->consume()) != srs_success) {
+            srs_error_reset(err); // Ignore any error.
+        }
+
+        // Consume the async cooked SRTP packets.
         if ((err = _srs_async_srtp->consume()) != srs_success) {
             srs_error_reset(err); // Ignore any error.
         }
