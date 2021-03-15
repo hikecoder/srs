@@ -28,6 +28,7 @@
 #include <srs_kernel_error.hpp>
 #include <srs_service_st.hpp>
 #include <srs_app_utility.hpp>
+#include <srs_app_threads.hpp>
 
 using namespace std;
 
@@ -274,6 +275,12 @@ srs_error_t SrsHybridServer::notify(int event, srs_utime_t interval, srs_utime_t
         } else {
             ++_srs_pps_timer_s->sugar;
         }
+
+        // Consume the cooked async SRTP packets.
+        if ((err = _srs_async_srtp->consume()) != srs_success) {
+            srs_error_reset(err); // Ignore any error.
+        }
+
         return err;
     }
 
